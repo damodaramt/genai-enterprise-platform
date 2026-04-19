@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()  # MUST be first
+load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,20 +9,30 @@ from app.api.auth import router as auth_router
 
 app = FastAPI()
 
-# 🔴 CORS CONFIG (FIX)
+# ✅ PRODUCTION-SAFE CORS CONFIG
+origins = [
+    "http://localhost:5173",
+    "https://genai-enterprise-platform.vercel.app",
+    "https://genai-enterprise-platform-lyypb52g8-damodaramts-projects.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ⚠ dev only
+    allow_origins=origins,      # ❗ NOT "*"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 🔴 ROUTERS
+# ROUTES
 app.include_router(chat_router, prefix="/chat")
 app.include_router(auth_router, prefix="/auth")
 
-# 🔴 HEALTH CHECK
+# HEALTH CHECK
 @app.get("/")
 def root():
     return {"status": "running"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
