@@ -38,24 +38,41 @@ export default function Login() {
         password: form.password,
       });
 
-      // 🔴 validate response
-      if (!res.data?.access_token) {
-        throw new Error("Token missing");
+      // ✅ DEBUG LOG (IMPORTANT)
+      console.log("LOGIN SUCCESS RESPONSE:", res.data);
+
+      // ✅ Validate response
+      if (!res?.data?.access_token) {
+        throw new Error("Token missing in response");
       }
 
+      // ✅ Store token
       localStorage.setItem("token", res.data.access_token);
 
+      // ✅ Redirect
       navigate("/");
-    } catch (err) {
-      console.error("Login error:", err);
 
+    } catch (err) {
+      // 🔴 FULL DEBUG
+      console.error("LOGIN ERROR FULL:", err);
+      console.error("LOGIN ERROR RESPONSE:", err?.response?.data);
+
+      // ✅ Proper error handling
       if (err.response?.status === 401) {
         setError("Invalid credentials");
       } else if (err.response?.status === 422) {
-        setError("Invalid request format (check email/password)");
+        setError("Invalid request format");
+      } else if (err.response?.status === 404) {
+        setError("API endpoint not found");
+      } else if (err.message === "Network Error") {
+        setError("Backend not reachable");
       } else {
-        setError("Server error. Try again.");
+        setError(
+          err?.response?.data?.detail ||
+          "Server error. Try again."
+        );
       }
+
     } finally {
       setLoading(false);
     }
