@@ -1,0 +1,192 @@
+/* =========================
+   ROOT COLORS
+========================= */
+:root {
+  --primary: #3fc1c9;
+  --primary-dark: #2fa4b7;
+  --primary-deep: #2b8fa0;
+
+  --bg-main: #f4f7f8;
+  --bg-soft: #eef3f4;
+
+  --text-main: #2b2b2b;
+  --border: #e2e8ea;
+}
+
+/* =========================
+   GLOBAL
+========================= */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+/* =========================
+   LOGIN PAGE
+========================= */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #3fc1c9, #2fa4b7);
+}
+
+.login-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  width: 340px;
+  text-align: center;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.login-card h2 {
+  margin-bottom: 20px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fafafa;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+
+  background: linear-gradient(135deg, #3fc1c9, #2fa4b7);
+  color: white;
+  border: none;
+  border-radius: 10px;
+
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.login-card button:hover {
+  background: linear-gradient(135deg, #2fa4b7, #2b8fa0);
+}
+
+.error {
+  color: red;
+  font-size: 13px;
+}
+
+/* =========================
+   APP LAYOUT
+========================= */
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+  width: 260px;
+  background: #ffffff;
+  padding: 20px;
+  border-right: 1px solid var(--border);
+}
+
+.chat-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: var(--bg-soft);
+  cursor: pointer;
+}
+
+.chat-item:hover {
+  background: #e3eff1;
+}
+
+/* =========================
+   CHAT AREA
+========================= */
+.chat-box {
+  flex: 1;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg-main);
+}
+
+/* =========================
+   MESSAGES
+========================= */
+.msg {
+  padding: 12px 16px;
+  border-radius: 14px;
+  margin: 8px 0;
+  max-width: 60%;
+  font-size: 14px;
+}
+
+/* USER */
+.user {
+  background: linear-gradient(135deg, #3fc1c9, #2fa4b7);
+  color: white;
+  align-self: flex-end;
+}
+
+/* BOT */
+.bot {
+  background: #e6f4f6;
+  align-self: flex-start;
+}
+
+/* =========================
+   INPUT AREA
+========================= */
+.input-area {
+  display: flex;
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  background: #ffffff;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.input-area input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* 🔴 SEND BUTTON */
+.input-area button {
+  margin-left: 10px;
+  padding: 12px 18px;
+
+  background: linear-gradient(135deg, #3fc1c9, #2fa4b7);
+  color: white;
+
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.input-area button:hover {
+  background: linear-gradient(135deg, #2fa4b7, #2b8fa0);
+}
