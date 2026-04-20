@@ -1,21 +1,27 @@
 import axios from "axios";
 
-// ✅ Base URL from environment (Vercel-safe)
+// ✅ PRODUCTION FIX: force HTTPS backend
+const BASE_URL = "https://damodaram-ai.ddns.net";
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: BASE_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Request Interceptor (attach JWT)
+// ✅ Attach JWT token
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (e) {
+      console.error("Token read error:", e);
     }
 
     return config;
@@ -23,11 +29,11 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ✅ Response Interceptor (global error handling)
+// ✅ Global response handling
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 🔴 Network error (backend unreachable)
+    // 🔴 Network / blocked request
     if (!error.response) {
       console.error("Network error:", error.message);
       return Promise.reject(error);
@@ -35,10 +41,15 @@ API.interceptors.response.use(
 
     const status = error.response.status;
 
-    // 🔴 Unauthorized → force logout
+    // 🔴 Unauthorized → logout
     if (status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
+    }
+
+    // 🔴 Forbidden
+    if (status === 403) {
+      console.error("Forbidden:", error.response.data);
     }
 
     // 🔴 Server error
