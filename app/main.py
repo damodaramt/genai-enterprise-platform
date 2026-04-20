@@ -9,28 +9,29 @@ from app.api.auth import router as auth_router
 
 app = FastAPI()
 
-# ✅ PRODUCTION-SAFE CORS CONFIG
-origins = [
-    "http://localhost:5173",  # local dev
-    "https://genai-enterprise-platform.vercel.app",  # production
-]
 
+# ✅ STRICT CORS (REQUIRED FOR PREFLIGHT)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        # ❗ DO NOT USE "*"
+    allow_origins=[
+        "https://genai-enterprise-platform.vercel.app",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],   # 🔴 MUST be "*"
+    allow_headers=["*"],   # 🔴 MUST be "*"
 )
 
-# ROUTES
+
+# ✅ ROUTES
 app.include_router(chat_router, prefix="/chat")
 app.include_router(auth_router, prefix="/auth")
 
-# HEALTH CHECK
+
+# ✅ HEALTH
 @app.get("/")
 def root():
     return {"status": "running"}
+
 
 @app.get("/health")
 def health():

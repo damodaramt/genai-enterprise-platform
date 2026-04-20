@@ -1,8 +1,79 @@
-venv/
-__pycache__/
+# =========================
+# ENV (CRITICAL - NEVER PUSH)
+# =========================
 .env
+.env.*
+!.env.example
+
+# =========================
+# PYTHON
+# =========================
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+
+# Virtual envs
+venv/
+.venv/
+
+# =========================
+# NODE / FRONTEND
+# =========================
 node_modules/
 dist/
-.env*
-.env*
+build/
+*.tsbuildinfo
+
+# =========================
+# VERCEL
+# =========================
+.vercel
+
+# =========================
+# DOCKER
+# =========================
+docker-compose.override.yml
+*.env.local
+
+# =========================
+# DATABASE / MIGRATIONS
+# =========================
+*.db
+*.sqlite
+alembic/versions/*.pyc
+
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / EDITOR
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# LOGS
+# =========================
+logs/
+*.log
+
+# =========================
+# TEST / CACHE
+# =========================
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# =========================
+# OPTIONAL (uncomment if needed)
+# =========================
+# coverage/
+# htmlcov/

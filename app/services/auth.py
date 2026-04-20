@@ -1,31 +1,33 @@
 # app/services/auth.py
 
-import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
 
-from dotenv import load_dotenv
+import os
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 
-# Load environment variables
-load_dotenv()
+# =========================
+# CONFIG (READ FROM ENV ONLY)
+# =========================
 
-
-# ENV CONFIG
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
-
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
+)
 
 if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY not set in environment")
+    raise ValueError("SECRET_KEY is not set")
 
 
-# Password hashing config
+# =========================
+# PASSWORD CONFIG
+# =========================
+
 pwd_context = CryptContext(
-    schemes=["bcrypt_sha256"],
+    schemes=["bcrypt"],   # ✅ STANDARD
     deprecated="auto"
 )
 
@@ -39,32 +41,38 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 
 # =========================
 # JWT TOKEN FUNCTIONS
 # =========================
 
-def create_access_token(data: dict) -> str:
+def create_access_token(data: Dict[str, str]) -> str:
     """
-    data must contain: {"sub": user_email}
+    data must include: {"sub": user_email}
     """
+    if "sub" not in data:
+        raise ValueError("Token data must include 'sub'")
+
     to_encode = data.copy()
 
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.utcnow() + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
     to_encode.update({"exp": expire})
 
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_token(token: str) -> Optional[dict]:
+def decode_token(token: str) -> Optional[Dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
-        # Ensure subject exists
         if "sub" not in payload:
             return None
 
