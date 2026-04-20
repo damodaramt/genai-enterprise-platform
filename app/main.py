@@ -11,14 +11,13 @@ app = FastAPI()
 
 # ✅ PRODUCTION-SAFE CORS CONFIG
 origins = [
-    "http://localhost:5173",
-    "https://genai-enterprise-platform.vercel.app",
-    "https://genai-enterprise-platform-lyypb52g8-damodaramts-projects.vercel.app",
+    "http://localhost:5173",  # local dev
+    "https://genai-enterprise-platform.vercel.app",  # production
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,      # ❗ NOT "*"
+    allow_origins=origins,        # ❗ DO NOT USE "*"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

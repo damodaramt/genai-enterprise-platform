@@ -1,14 +1,15 @@
 import axios from "axios";
 
+// ✅ Base URL from environment (Vercel-safe)
 const API = axios.create({
-  baseURL: "http://34.93.50.136:8000", // ✅ clean base
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// 🔴 Request Interceptor (attach JWT)
+// ✅ Request Interceptor (attach JWT)
 API.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -22,23 +23,27 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 🔴 Response Interceptor (handle errors globally)
+// ✅ Response Interceptor (global error handling)
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response) {
-      // 🔴 Unauthorized → force logout
-      if (error.response.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-      }
-
-      // 🔴 Server error
-      if (error.response.status >= 500) {
-        console.error("Server error:", error.response.data);
-      }
-    } else {
+    // 🔴 Network error (backend unreachable)
+    if (!error.response) {
       console.error("Network error:", error.message);
+      return Promise.reject(error);
+    }
+
+    const status = error.response.status;
+
+    // 🔴 Unauthorized → force logout
+    if (status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+
+    // 🔴 Server error
+    if (status >= 500) {
+      console.error("Server error:", error.response.data);
     }
 
     return Promise.reject(error);
