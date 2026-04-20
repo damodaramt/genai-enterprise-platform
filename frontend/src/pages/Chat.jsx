@@ -11,25 +11,31 @@ export default function Chat() {
   const navigate = useNavigate();
   const chatEndRef = useRef(null);
 
-  // 🔴 Auth Guard
+  // ✅ Auth Guard
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-    }
+    if (!token) navigate("/login");
   }, [navigate]);
 
-  // 🔴 Load History
+  // ✅ Load History (normalize format)
   const loadHistory = async () => {
     try {
-      const res = await API.get("/chat/chat/history"); // ✅ FIXED
-      setHistory(res.data);
+      const res = await API.get("/chat/chat/history/");
+
+      // 🔥 NORMALIZE RESPONSE
+      const formatted = res.data.map((item) => ({
+        user_message: item.user_message || item.message || "",
+        ai_response: item.ai_response || item.response || "",
+      }));
+
+      setHistory(formatted);
+
     } catch (err) {
       console.error("History error:", err);
     }
   };
 
-  // 🔴 Send Message
+  // ✅ Send Message (FIXED)
   const sendMessage = async () => {
     if (!message || loading) return;
 
@@ -39,8 +45,19 @@ export default function Chat() {
     setHistory((prev) => [...prev, userMsg]);
 
     try {
-      const res = await API.post("/chat/chat", { message }); // ✅ FIXED
-      setHistory((prev) => [...prev, res.data]);
+      const res = await API.post("/chat/chat/", { message });
+
+      // 🔥 SAFE RESPONSE PARSING
+      const aiText =
+        res?.data?.ai_response ||
+        res?.data?.response ||
+        res?.data?.answer ||
+        "No response from server";
+
+      const aiMsg = { ai_response: aiText };
+
+      setHistory((prev) => [...prev, aiMsg]);
+
     } catch (err) {
       console.error("Chat error:", err);
 
@@ -54,17 +71,17 @@ export default function Chat() {
     setLoading(false);
   };
 
-  // 🔴 Auto scroll
+  // ✅ Auto scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [history]);
 
-  // 🔴 Load once
+  // ✅ Initial load
   useEffect(() => {
     loadHistory();
   }, []);
 
-  // 🔴 Logout
+  // ✅ Logout
   const logout = () => {
     localStorage.removeItem("token");
     navigate("/login");
