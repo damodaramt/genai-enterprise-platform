@@ -1,16 +1,29 @@
-
-
 services:
+  postgres:
+    image: postgres:15
+    container_name: chatbot-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: chatbot_user
+      POSTGRES_PASSWORD: postgres@40123
+      POSTGRES_DB: genai_chatbot
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: chatbot-backend
     restart: always
-    ports:
-      - "8001:8000"
+    depends_on:
+      - postgres
     env_file:
       - .env
+    ports:
+      - "8001:8000"
     networks:
       - app-network
 
@@ -18,7 +31,7 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_URL: "http://backend:8000"
+        VITE_API_URL: "https://damodaram-ai.ddns.net"
     container_name: chatbot-frontend
     restart: always
     ports:
@@ -31,3 +44,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  postgres_data:

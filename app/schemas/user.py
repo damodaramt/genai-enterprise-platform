@@ -1,3 +1,5 @@
+# app/schemas/user.py
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -18,7 +20,7 @@ class UserLogin(BaseModel):
 
 
 # =========================
-# RESPONSE SCHEMA (OPTIONAL BUT RECOMMENDED)
+# USER RESPONSE (DB → API)
 # =========================
 class UserResponse(BaseModel):
     id: int
@@ -26,3 +28,11 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =========================
+# TOKEN RESPONSE (IMPORTANT)
+# =========================
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"

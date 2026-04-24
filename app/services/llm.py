@@ -1,4 +1,5 @@
 import os
+import logging
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -7,48 +8,89 @@ from openai import OpenAI
 # =========================
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY is not set in environment")
+# =========================
+# CLIENT INIT (SAFE)
+# =========================
+client = None
+
+if OPENAI_API_KEY:
+    try:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    except Exception as e:
+        logger.error(f"OpenAI init failed: {str(e)}")
+else:
+    logger.warning("OPENAI_API_KEY not set → fallback mode enabled")
+
 
 # =========================
-# CREATE CLIENT (singleton)
-# =========================
-client = OpenAI(api_key=OPENAI_API_KEY)
-
-
-# =========================
-# LLM FUNCTION
+# LLM FUNCTION (PRODUCTION SAFE)
 # =========================
 def generate_response(query: str) -> str:
+    """
+    Production-safe LLM call:
+    - validates input
+    - handles missing API key
+    - timeout protection
+    - safe parsing
+    - fallback response
+    """
+
     try:
-        # ✅ Input validation
+        # =========================
+        # INPUT VALIDATION
+        # =========================
         if not query or not query.strip():
             return "Please enter a valid message."
 
-        # ✅ OpenAI v2 API
+        clean_query = query.strip()
+
+        # =========================
+        # FALLBACK (NO API KEY)
+        # =========================
+        if client is None:
+            logger.warning("LLM fallback triggered (no API key)")
+            return f"Echo: {clean_query}"
+
+        # =========================
+        # OPENAI CALL (SAFE)
+        # =========================
         response = client.responses.create(
             model="gpt-4o-mini",
-            input=query.strip(),
+            input=clean_query,
+            timeout=10,  # 🔴 critical
         )
 
-        # ✅ Safe extraction (important)
-        if not response.output:
-            return "No response from AI."
+        # =========================
+        # SAFE EXTRACTION
+        # =========================
+        try:
+            if not response.output:
+                return "No response from AI."
 
-        content_blocks = response.output[0].content
+            content_blocks = response.output[0].content
 
-        if not content_blocks:
-            return "Empty AI response."
+            if not content_blocks:
+                return "Empty AI response."
 
-        text = content_blocks[0].text
+            text = content_blocks[0].text
 
-        return text.strip()
+            if not text:
+                return "AI returned empty response."
+
+            return text.strip()
+
+        except Exception as parse_error:
+            logger.error(f"Parse error: {str(parse_error)}")
+            return "AI response parsing failed."
 
     except Exception as e:
-        # 🔴 DEBUG (visible in terminal)
-        print("LLM ERROR:", str(e))
+        # =========================
+        # GLOBAL FAILSAFE
+        # =========================
+        logger.error(f"LLM ERROR: {str(e)}")
 
-        # 🔴 TEMP expose error (remove later)
-        return f"LLM ERROR: {str(e)}"
+        return "AI service temporarily unavailable"

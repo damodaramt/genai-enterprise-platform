@@ -1,82 +1,38 @@
-# app/services/auth.py
-
-from datetime import datetime, timedelta
-from typing import Optional, Dict
-
 import os
-from jose import JWTError, jwt
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# =========================
-# CONFIG (READ FROM ENV ONLY)
-# =========================
-
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(
-    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60")
-)
-
+# 🔴 MUST EXIST
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY is not set")
+    raise ValueError("JWT_SECRET_KEY is not set")
+
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
 
-# =========================
-# PASSWORD CONFIG
-# =========================
-
-pwd_context = CryptContext(
-    schemes=["bcrypt"],   # ✅ STANDARD
-    deprecated="auto"
-)
-
-
-# =========================
-# PASSWORD FUNCTIONS
-# =========================
-
-def hash_password(password: str) -> str:
+def hash_password(password: str):
     return pwd_context.hash(password)
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    try:
-        return pwd_context.verify(plain_password, hashed_password)
-    except Exception:
-        return False
+def verify_password(password: str, hashed_password: str):
+    return pwd_context.verify(password, hashed_password)
 
 
-# =========================
-# JWT TOKEN FUNCTIONS
-# =========================
-
-def create_access_token(data: Dict[str, str]) -> str:
-    """
-    data must include: {"sub": user_email}
-    """
-    if "sub" not in data:
-        raise ValueError("Token data must include 'sub'")
-
+def create_access_token(data: dict):
     to_encode = data.copy()
-
-    expire = datetime.utcnow() + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
 
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_token(token: str) -> Optional[Dict]:
+def decode_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        if "sub" not in payload:
-            return None
-
-        return payload
-
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
