@@ -1,12 +1,25 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login.jsx";
+import Chat from "./pages/Chat.jsx";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+function App() {
+  const token = localStorage.getItem("token");
+
+  return (
     <BrowserRouter>
-      <App />
+      <Routes>
+        <Route
+          path="/"
+          element={token ? <Navigate to="/chat" /> : <Navigate to="/login" />}
+        />
+        <Route path="/login" element={<Login />} />
+        <Route
+          path="/chat"
+          element={token ? <Chat /> : <Navigate to="/login" />}
+        />
+      </Routes>
     </BrowserRouter>
-  </React.StrictMode>
-);
+  );
+}
+
+export default App;

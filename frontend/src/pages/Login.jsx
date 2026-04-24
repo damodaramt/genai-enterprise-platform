@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/client";
 import "../styles/theme.css";
@@ -6,24 +6,26 @@ import "../styles/theme.css";
 export default function Login() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  /**
+   * REDIRECT IF ALREADY LOGGED IN
+   */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) navigate("/chat");
+  }, [navigate]);
 
-  const login = async () => {
-    if (!form.email || !form.password) {
-      setError("Email and Password required");
+  /**
+   * LOGIN HANDLER
+   */
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setError("Email and password required");
       return;
     }
 
@@ -34,38 +36,59 @@ export default function Login() {
 
     try {
       const res = await API.post("/auth/login", {
-        email: form.email,
-        password: form.password,
+        email,
+        password,
       });
 
-      if (!res?.data?.access_token) {
-        throw new Error("Invalid response from server");
+      const token = res.data?.access_token;
+
+      if (!token) {
+        throw new Error("Invalid server response");
       }
 
-      // ✅ Store token
-      localStorage.setItem("token", res.data.access_token);
+      localStorage.setItem("token", token);
 
-      // ✅ Navigate to chat/dashboard
-      navigate("/");
-
+      navigate("/chat");
     } catch (err) {
-      if (err.response?.status === 401) {
-        setError("Invalid credentials");
-      } else if (err.response?.status === 404) {
-        setError("API endpoint not found");
-      } else if (err.message === "Network Error") {
-        setError("Backend not reachable");
-      } else {
-        setError(
-          err?.response?.data?.detail ||
-          "Server error. Try again."
-        );
+      /**
+       * ✅ STRICT ERROR HANDLING (MATCHES INTERCEPTOR)
+       */
+      switch (err.type) {
+        case "TIMEOUT":
+          setError("Server timeout. Try again");
+          break;
+
+        case "NETWORK_ERROR":
+          setError("Cannot connect to server");
+          break;
+
+        case "UNAUTHORIZED":
+          setError("Invalid credentials");
+          break;
+
+        case "FORBIDDEN":
+          setError("Access denied");
+          break;
+
+        case "SERVER_ERROR":
+          setError("Server error. Try later");
+          break;
+
+        case "CLIENT_ERROR":
+          setError(err.message);
+          break;
+
+        default:
+          setError(err.message || "Login failed");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * UI
+   */
   return (
     <div className="login-container">
       <div className="login-card">
@@ -74,21 +97,20 @@ export default function Login() {
         {error && <p className="error">{error}</p>}
 
         <input
-          name="email"
+          type="email"
           placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
-          name="password"
           type="password"
           placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button onClick={login} disabled={loading}>
+        <button onClick={handleLogin} disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </div>

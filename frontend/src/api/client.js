@@ -1,37 +1,31 @@
 import axios from "axios";
 
 /**
- * ✅ PRODUCTION-SAFE CONFIG
- * DO NOT USE import.meta.env (causes build/runtime mismatch in Vercel)
+ * BASE URL
  */
 const BASE_URL = "https://damodaram-ai.ddns.net";
 
-console.log("🚀 API BASE URL:", BASE_URL);
-
 /**
- * ✅ Axios instance
+ * AXIOS INSTANCE
  */
 const API = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
+  timeout: 15000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 /**
- * ✅ Attach JWT token
+ * REQUEST INTERCEPTOR
  */
 API.interceptors.request.use(
   (config) => {
-    try {
-      const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (e) {
-      console.error("❌ Token read error:", e);
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -40,40 +34,72 @@ API.interceptors.request.use(
 );
 
 /**
- * ✅ Global response handling
+ * RESPONSE INTERCEPTOR (FIXED)
  */
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 🔴 Network-level error (request never reached backend)
-    if (!error.response) {
-      console.error("❌ NETWORK ERROR:", {
-        message: error.message,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
+    /**
+     * 🔴 AXIOS ERROR TYPES
+     */
+    if (error.code === "ECONNABORTED") {
+      return Promise.reject({
+        type: "TIMEOUT",
+        message: "Request timeout",
       });
-      return Promise.reject(error);
+    }
+
+    /**
+     * 🔴 TRUE NETWORK ERROR
+     */
+    if (!error.response) {
+      return Promise.reject({
+        type: "NETWORK_ERROR",
+        message: "Network issue or server unreachable",
+      });
     }
 
     const status = error.response.status;
 
-    // 🔴 Unauthorized
+    /**
+     * 🔴 AUTH
+     */
     if (status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
+      return Promise.reject({
+        type: "UNAUTHORIZED",
+        message: "Session expired",
+      });
     }
 
-    // 🔴 Forbidden
+    /**
+     * 🔴 FORBIDDEN
+     */
     if (status === 403) {
-      console.error("❌ Forbidden:", error.response.data);
+      return Promise.reject({
+        type: "FORBIDDEN",
+        message: "Access denied",
+      });
     }
 
-    // 🔴 Server error
+    /**
+     * 🔴 SERVER ERROR
+     */
     if (status >= 500) {
-      console.error("❌ Server error:", error.response.data);
+      return Promise.reject({
+        type: "SERVER_ERROR",
+        message: error.response.data?.detail || "Internal server error",
+      });
     }
 
-    return Promise.reject(error);
+    /**
+     * 🔴 CLIENT ERROR
+     */
+    return Promise.reject({
+      type: "CLIENT_ERROR",
+      message: error.response.data?.detail || "Request failed",
+    });
   }
 );
 
