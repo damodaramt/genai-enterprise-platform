@@ -1,43 +1,48 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Chat from "./pages/Chat";
+import Login from "./pages/Login.jsx";
+import Chat from "./pages/Chat.jsx";
 
 /**
- * AUTH CHECK
+ * SAFE AUTH CHECK
  */
 const isAuthenticated = () => {
-  return !!localStorage.getItem("token");
+  try {
+    return typeof window !== "undefined" && !!localStorage.getItem("token");
+  } catch {
+    return false;
+  }
 };
 
 /**
  * PROTECTED ROUTE
  */
 function PrivateRoute({ children }) {
-  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
 }
 
 /**
- * PUBLIC ROUTE (prevent logged-in user accessing login)
+ * PUBLIC ROUTE
  */
 function PublicRoute({ children }) {
-  return !isAuthenticated() ? children : <Navigate to="/chat" replace />;
+  if (isAuthenticated()) {
+    return <Navigate to="/chat" replace />;
+  }
+  return children;
 }
 
-function App() {
+export default function App() {
+  const auth = isAuthenticated();
+
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* ROOT REDIRECT */}
+        {/* ROOT */}
         <Route
           path="/"
-          element={
-            isAuthenticated() ? (
-              <Navigate to="/chat" replace />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
+          element={<Navigate to={auth ? "/chat" : "/login"} replace />}
         />
 
         {/* LOGIN */}
@@ -61,14 +66,8 @@ function App() {
         />
 
         {/* FALLBACK */}
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
 }
-
-export default App;
