@@ -1,9 +1,13 @@
 import axios from "axios";
 
 /**
- * BASE URL
+ * BASE URL FROM ENV
  */
-const BASE_URL = "https://damodaram-ai.ddns.net";
+const BASE_URL = import.meta.env.VITE_API_URL;
+
+if (!BASE_URL) {
+  throw new Error("VITE_API_URL is not defined");
+}
 
 /**
  * AXIOS INSTANCE
@@ -34,14 +38,11 @@ API.interceptors.request.use(
 );
 
 /**
- * RESPONSE INTERCEPTOR (FIXED)
+ * RESPONSE INTERCEPTOR
  */
 API.interceptors.response.use(
   (response) => response,
   (error) => {
-    /**
-     * 🔴 AXIOS ERROR TYPES
-     */
     if (error.code === "ECONNABORTED") {
       return Promise.reject({
         type: "TIMEOUT",
@@ -49,9 +50,6 @@ API.interceptors.response.use(
       });
     }
 
-    /**
-     * 🔴 TRUE NETWORK ERROR
-     */
     if (!error.response) {
       return Promise.reject({
         type: "NETWORK_ERROR",
@@ -61,9 +59,6 @@ API.interceptors.response.use(
 
     const status = error.response.status;
 
-    /**
-     * 🔴 AUTH
-     */
     if (status === 401) {
       localStorage.removeItem("token");
       window.location.href = "/login";
@@ -73,9 +68,6 @@ API.interceptors.response.use(
       });
     }
 
-    /**
-     * 🔴 FORBIDDEN
-     */
     if (status === 403) {
       return Promise.reject({
         type: "FORBIDDEN",
@@ -83,9 +75,6 @@ API.interceptors.response.use(
       });
     }
 
-    /**
-     * 🔴 SERVER ERROR
-     */
     if (status >= 500) {
       return Promise.reject({
         type: "SERVER_ERROR",
@@ -93,9 +82,6 @@ API.interceptors.response.use(
       });
     }
 
-    /**
-     * 🔴 CLIENT ERROR
-     */
     return Promise.reject({
       type: "CLIENT_ERROR",
       message: error.response.data?.detail || "Request failed",

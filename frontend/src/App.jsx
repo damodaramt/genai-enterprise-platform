@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login.jsx";
 import Chat from "./pages/Chat.jsx";
 
@@ -37,37 +37,35 @@ export default function App() {
   const auth = isAuthenticated();
 
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* ROOT */}
-        <Route
-          path="/"
-          element={<Navigate to={auth ? "/chat" : "/login"} replace />}
-        />
+    <Routes>
+      {/* ROOT */}
+      <Route
+        path="/"
+        element={<Navigate to={auth ? "/chat" : "/login"} replace />}
+      />
 
-        {/* LOGIN */}
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
+      {/* LOGIN */}
+      <Route
+        path="/login"
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
+      />
 
-        {/* CHAT */}
-        <Route
-          path="/chat"
-          element={
-            <PrivateRoute>
-              <Chat />
-            </PrivateRoute>
-          }
-        />
+      {/* CHAT */}
+      <Route
+        path="/chat"
+        element={
+          <PrivateRoute>
+            <Chat />
+          </PrivateRoute>
+        }
+      />
 
-        {/* FALLBACK */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      {/* FALLBACK */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
