@@ -22,7 +22,6 @@ export default function Chat() {
 
   const loadHistory = async () => {
     try {
-      // ✅ FIXED
       const res = await API.get("/chat/history?limit=20");
       setMessages(res.data);
     } catch (err) {
@@ -44,7 +43,6 @@ export default function Chat() {
     setLoading(true);
 
     try {
-      // ✅ FIXED
       const res = await API.post("/chat/", {
         message: userMessage,
       });
@@ -102,13 +100,25 @@ export default function Chat() {
         <div ref={endRef} />
       </div>
 
-      <div className="input-area">
+      {/* ✅ ONLY UI FIX HERE */}
+      <div
+        className="input-area"
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "center",
+        }}
+      >
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type message..."
           disabled={loading}
+          style={{
+            flex: 1,
+          }}
         />
+
         <button onClick={sendMessage} disabled={loading}>
           {loading ? "Sending..." : "Send"}
         </button>
