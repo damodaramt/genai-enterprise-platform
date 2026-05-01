@@ -1,41 +1,58 @@
 # 🚀 GenAI Enterprise Platform
 
-Production-ready **multi-tenant AI platform** built with FastAPI, React, JWT authentication, and OpenAI.
-Designed for scalable, secure, and real-world enterprise use cases.
+Production-ready **GenAI chatbot platform** built with FastAPI, React, PostgreSQL, and OpenAI.
+Designed with **scalable architecture, secure authentication, and Kubernetes deployment**.
 
 ---
 
 ## 🧠 Overview
 
-This platform enables organizations to interact with AI securely using their own data.
-It supports **multi-user access, tenant isolation, persistent chat history, and LLM-powered responses**.
+This platform enables users to interact with AI in a secure and scalable environment.
+
+It includes:
+
+* JWT-based authentication
+* Persistent chat history
+* LLM-powered responses
+* Kubernetes-based deployment
+* Public access via Cloudflare Tunnel
 
 ---
 
-## ✨ Core Features
+## ✨ Features
 
-* 🔐 JWT-based authentication system
-* 🏢 Multi-tenant architecture (organization-level isolation)
-* 💬 AI-powered chat (OpenAI GPT)
-* 🗄 Chat history persistence (PostgreSQL)
-* ⚡ FastAPI backend with clean architecture
-* 🎯 Modern UI (React + Vite)
-* 🔄 API-driven scalable design
+* 🔐 JWT Authentication (Login / Signup)
+* 💬 AI Chat (OpenAI integration)
+* 🗄 Persistent Chat History (PostgreSQL)
+* ⚡ FastAPI backend (clean architecture)
+* 🎯 React + Vite frontend
+* ☸️ Kubernetes deployment (scalable)
+* 🌐 Cloudflare Tunnel (secure public exposure)
+* 🔄 REST API-based architecture
 
 ---
 
-## 🏗 System Architecture
+## 🏗 Architecture
 
 ```
-Client (React)
-   ↓
-FastAPI Backend
-   ↓
-Authentication Layer (JWT)
-   ↓
-LLM Service (OpenAI)
-   ↓
-PostgreSQL Database
+Frontend (Vercel - React)
+        ↓
+Cloudflare Tunnel (Public URL)
+        ↓
+FastAPI Backend (Kubernetes Pod)
+        ↓
+PostgreSQL (K8s Service)
+```
+
+---
+
+## 🔄 Request Flow
+
+```
+User → Login → JWT Token
+User → Chat Request → Backend (JWT Verified)
+Backend → OpenAI → Response
+Backend → Store in PostgreSQL
 ```
 
 ---
@@ -53,32 +70,53 @@ PostgreSQL Database
 * React (Vite)
 * Axios
 
-### AI Layer
+### AI
 
-* OpenAI GPT (gpt-4o-mini)
+* OpenAI (gpt-4o-mini)
 
 ### Infrastructure
 
-* Docker (planned)
-* Vercel (frontend deployment)
+* Docker
+* Kubernetes (Minikube)
+* Cloudflare Tunnel
+* Vercel (Frontend Hosting)
 
 ---
 
-## 📦 Local Setup
+## 📁 Project Structure
 
-### Backend
-
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+genai-chat/
+│
+├── app/                # FastAPI backend
+│   ├── api/
+│   ├── models/
+│   ├── services/
+│   └── core/
+│
+├── frontend/           # React frontend
+│
+├── k8s/                # Kubernetes manifests
+│
+├── Dockerfile.backend
+├── requirements.txt
+├── README.md
 ```
 
 ---
 
+## ⚙️ Local Setup
+
+### Backend
+
+```
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
 ### Frontend
 
-```bash
+```
 cd frontend
 npm install
 npm run dev
@@ -86,10 +124,21 @@ npm run dev
 
 ---
 
-## 🌍 Deployment
+## ☸️ Kubernetes Deployment
 
-* **Backend**: http://34.93.50.136:8000
-* **Frontend**: (Deploy via Vercel)
+```
+kubectl apply -f k8s/base/
+kubectl get pods -n genai
+kubectl get svc -n genai
+```
+
+---
+
+## 🌐 Public Access (Cloudflare Tunnel)
+
+```
+cloudflared tunnel --url http://localhost:8000
+```
 
 ---
 
@@ -97,36 +146,91 @@ npm run dev
 
 Create `.env` file:
 
-```env
-OPENAI_API_KEY=
-DATABASE_URL=
-JWT_SECRET_KEY=
+```
+OPENAI_API_KEY=your_key
+DATABASE_URL=postgresql://user:pass@host/db
+JWT_SECRET_KEY=your_secret
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 ```
 
 ---
 
-## 📈 Roadmap / Improvements
+## 🔌 API Usage
 
-* 📄 RAG (document-based retrieval system)
-* 🏢 Organization-level data isolation (advanced multi-tenancy)
-* 🐳 Docker & containerized deployment
-* ☸️ Kubernetes for scaling
-* ⚡ Redis caching layer
-* 📊 Observability (logs, metrics)
+### Signup
+
+```
+POST /auth/signup
+```
+
+### Login
+
+```
+POST /auth/login
+```
+
+### Chat
+
+```
+POST /chat/
+Authorization: Bearer <TOKEN>
+```
+
+---
+
+## 📸 Screenshots
+
+(Add these images for proof)
+
+* Chat UI working
+* Swagger API docs (/docs)
+* Kubernetes pods (`kubectl get pods`)
+* Kubernetes services (`kubectl get svc`)
+* Cloudflare public URL working
+
+---
+
+## 📈 Scalability
+
+* Kubernetes deployment with HPA
+* Stateless backend
+* Database separation
+* Easily extendable to multi-region
 
 ---
 
 ## 🎯 Use Cases
 
-* Enterprise knowledge assistants
-* Internal AI copilots
-* Customer support automation
-* Document-based Q&A systems
+* Enterprise AI assistants
+* Internal copilots
+* Chat-based automation
+* Knowledge base systems
+
+---
+
+## 🚀 Future Improvements
+
+* RAG (PDF / document chat)
+* Vector DB (FAISS / Pinecone)
+* Streaming responses
+* Redis caching
+* Observability (Prometheus + Grafana)
+* CI/CD pipeline
 
 ---
 
 ## 👨‍💻 Author
 
-**Damodaram**
+Damodaram
 
+---
+
+## ⭐ Summary
+
+This project demonstrates:
+
+* Full-stack development
+* Kubernetes deployment
+* LLM integration
+* Production-level debugging
+* Real-world system design
