@@ -73,26 +73,20 @@ def chat(
 
     logger.info(f"Incoming message: {message}")
 
-    # 🔴 SAFE LLM CALL (with fallback)
     try:
         response = generate_response(message)
-
         if not response:
             response = "No response from AI"
 
     except Exception as e:
         logger.error(f"LLM ERROR: {str(e)}")
-
-        # ✅ fallback (IMPORTANT)
         response = "AI service temporarily unavailable"
 
-    # =========================
-    # SAVE TO DB
-    # =========================
+    # ✅ FIXED DB INSERT
     chat_record = Chat(
         user_id=user.id,
-        query=message,
-        response=response
+        user_message=message,
+        ai_response=response
     )
 
     try:
@@ -127,11 +121,12 @@ def get_chat_history(
         .all()
     )
 
+    # ✅ FIXED RESPONSE MAPPING
     return [
         ChatHistoryItem(
             id=c.id,
-            user_message=c.query,
-            ai_response=c.response,
+            user_message=c.user_message,
+            ai_response=c.ai_response,
             created_at=c.created_at
         )
         for c in chats
