@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from typing import List
@@ -11,9 +11,10 @@ from app.models.user import User
 from app.models.chat import Chat
 from app.db.database import SessionLocal
 
-router = APIRouter(tags=["chat"])
+router = APIRouter(prefix="", tags=["chat"])
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("chat")
+logging.basicConfig(level=logging.INFO)
 
 
 # =========================
@@ -31,7 +32,7 @@ def get_db():
 # SCHEMAS
 # =========================
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1)
+    message: str = Field(..., min_length=1, max_length=4000)
 
 
 class ChatResponse(BaseModel):
@@ -47,7 +48,7 @@ class ChatHistoryItem(BaseModel):
 
 
 # =========================
-# HEALTH
+# HEALTH CHECK
 # =========================
 @router.get("/")
 def chat_root(user: User = Depends(get_current_user)):
@@ -69,24 +70,26 @@ def chat(
     message = req.message.strip()
 
     if not message:
-        raise HTTPException(status_code=400, detail="Message required")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message cannot be empty"
+        )
 
-    logger.info(f"Incoming message: {message}")
+    logger.info(f"[CHAT] user={user.id} message={message}")
 
     try:
-        response = generate_response(message)
-        if not response:
-            response = "No response from AI"
-
+        ai_response = generate_response(message)
+        if not ai_response:
+            ai_response = "No response from AI"
     except Exception as e:
-        logger.error(f"LLM ERROR: {str(e)}")
-        response = "AI service temporarily unavailable"
+        logger.error(f"[LLM ERROR] {str(e)}")
+        ai_response = "AI service temporarily unavailable"
 
-    # ✅ FIXED DB INSERT
+    # DB insert
     chat_record = Chat(
         user_id=user.id,
         user_message=message,
-        ai_response=response
+        ai_response=ai_response
     )
 
     try:
@@ -94,16 +97,17 @@ def chat(
         db.commit()
         db.refresh(chat_record)
     except Exception as e:
-        logger.error(f"DB ERROR: {str(e)}")
+        logger.error(f"[DB ERROR] {str(e)}")
+        db.rollback()
 
-    return {
-        "user_message": message,
-        "ai_response": response
-    }
+    return ChatResponse(
+        user_message=message,
+        ai_response=ai_response
+    )
 
 
 # =========================
-# HISTORY
+# CHAT HISTORY
 # =========================
 @router.get("/history", response_model=List[ChatHistoryItem])
 def get_chat_history(
@@ -121,7 +125,6 @@ def get_chat_history(
         .all()
     )
 
-    # ✅ FIXED RESPONSE MAPPING
     return [
         ChatHistoryItem(
             id=c.id,

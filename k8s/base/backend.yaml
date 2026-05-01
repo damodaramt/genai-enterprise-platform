@@ -29,7 +29,6 @@ spec:
             - name: DATABASE_URL
               value: postgresql://chatbot_user:chatbot_pass@postgres:5432/genai_chatbot
 
-            # ✅ SECURE SECRET (NO HARDCODE)
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -50,9 +49,12 @@ metadata:
   namespace: genai
 
 spec:
+  type: NodePort   # 🔴 REQUIRED
+
   selector:
     app: backend
 
   ports:
     - port: 8000
       targetPort: 8000
+      nodePort: 30008   # 🔴 FIXED EXTERNAL PORT

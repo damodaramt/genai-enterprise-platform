@@ -1,19 +1,15 @@
-# app/main.py
-
+ashok_siva6363@genai-chatbot-server:~/genai-chat$ cat app/main.py
 from dotenv import load_dotenv
 load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Routers
 from app.api.auth import router as auth_router
 from app.api.chat import router as chat_router
 
-# DB
 from app.db.database import engine, Base
 
-# 🔴 IMPORTANT: register ALL models BEFORE create_all
 import app.models.user  # noqa
 import app.models.chat  # noqa
 
@@ -22,10 +18,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-
-# =========================
-# DATABASE INIT
-# =========================
 @app.on_event("startup")
 def startup():
     print("🚀 Starting application...")
@@ -33,35 +25,25 @@ def startup():
     print("✅ Database tables ensured")
 
 
-# =========================
-# CORS (ONLY HERE)
-# =========================
+# TEMP: allow all origins for debugging
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://genai-enterprise-platform.vercel.app"
-    ],
+    allow_origins=["*"],  # change later to Vercel domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-
-# =========================
-# ROUTES
-# =========================
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 
 
-# =========================
-# HEALTH CHECKS
-# =========================
-@app.get("/", tags=["health"])
+@app.get("/")
 def root():
     return {"status": "running"}
 
 
-@app.get("/health", tags=["health"])
+@app.get("/health")
 def health():
     return {"status": "ok"}
+

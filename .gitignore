@@ -92,3 +92,4 @@ logs/
 # ==============================
 coverage/
 htmlcov/
+minikube-linux-amd64
