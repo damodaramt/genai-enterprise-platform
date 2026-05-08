@@ -96,8 +96,6 @@ minikube-linux-amd64
 # ==============================
 # 🗂 LOCAL SERVER BACKUPS
 # ==============================
-server_backup/
-*.tar.gz
 backup.sql
 cloudflared-linux-amd64.deb
 kubectl
