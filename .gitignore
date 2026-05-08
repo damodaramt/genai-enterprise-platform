@@ -93,3 +93,21 @@ logs/
 coverage/
 htmlcov/
 minikube-linux-amd64
+# ==============================
+# 🗂 LOCAL SERVER BACKUPS
+# ==============================
+server_backup/
+*.tar.gz
+backup.sql
+cloudflared-linux-amd64.deb
+kubectl
+
+# ==============================
+# 🧠 LOCAL DEBUG / HISTORY FILES
+# ==============================
+full_history_with_time.txt
+docker_commands.txt
+git_commands.txt
+python_commands.txt
+kubernetes_commands.txt
+.bash_history
